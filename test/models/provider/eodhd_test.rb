@@ -464,4 +464,23 @@ class Provider::EodhdTest < ActiveSupport::TestCase
     assert_equal 1, Rails.cache.read("eodhd:daily:2026-08-21")
     assert_equal 5, Rails.cache.read("eodhd:daily:2026-08-22")
   end
+
+  test "client sets explicit open and read timeouts" do
+    options = @provider.send(:client).options
+
+    assert_equal 5, options.open_timeout
+    assert_equal 20, options.timeout
+  end
+
+  test "a timed-out request returns a failed response with the provider's Error" do
+    @provider.stubs(:enforce_daily_limit!)
+    @provider.stubs(:throttle_request)
+    Faraday::Retry::Middleware.any_instance.stubs(:sleep)
+    stub_request(:get, %r{\Ahttps://eodhd\.com/}).to_timeout
+
+    response = @provider.search_securities("TEST")
+
+    assert_not response.success?
+    assert_instance_of Provider::Eodhd::Error, response.error
+  end
 end
