@@ -246,9 +246,9 @@ class Family::DataImporterTest < ActiveSupport::TestCase
       }
     ])
 
-    account = Family::DataImporter.new(@family, ndjson).import![:accounts].first
+    account_id = Family::DataImporter.new(@family, ndjson).import![:account_ids].first
 
-    assert account.reload.cost_basis_fifo?
+    assert Account.find(account_id).cost_basis_fifo?
   end
 
   test "an export without a known cost basis method imports as average" do
@@ -263,9 +263,9 @@ class Family::DataImporterTest < ActiveSupport::TestCase
       }
     ])
 
-    accounts = Family::DataImporter.new(@family, ndjson).import![:accounts]
+    account_ids = Family::DataImporter.new(@family, ndjson).import![:account_ids]
 
-    assert_equal %w[average average], accounts.map { |account| account.reload.cost_basis_method }
+    assert_equal %w[average average], Account.where(id: account_ids).pluck(:cost_basis_method)
   end
 
   test "imports non-destructive account status from ndjson" do
