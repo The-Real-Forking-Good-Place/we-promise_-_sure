@@ -852,12 +852,6 @@ class HoldingLotDisposalTest < ActiveSupport::TestCase
         account_provider: @account_provider)
     end
 
-    # Under travel_to every entry shares one created_at; spread them out in the
-    # order given.
-    def entered_in_order(*entries)
-      entries.each_with_index { |entry, index| entry.update_columns(created_at: TODAY - (entries.size - index).minutes) }
-    end
-
     def materialize(strategy)
       Holding::Materializer.new(@account.reload, strategy: strategy).materialize_holdings
     end
